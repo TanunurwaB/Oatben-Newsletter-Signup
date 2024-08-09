@@ -1,0 +1,131 @@
+This code is a Node.js application that uses the Express framework to create a web server.
+ The server handles a form submission from a webpage, processes the data, and sends it to an external API (Mailchimp) for adding new subscribers. Let's break it down step by step:
+
+### 1. Importing Required Modules
+
+```javascript
+const express = require('express');
+const bodyParser = require('body-parser');
+const request = require("request");
+const https = require('https');
+const { METHODS } = require('http');
+const { log } = require('console');
+```
+- **express**: A web application framework for Node.js used to create a web server.
+- **bodyParser**: Middleware that parses incoming request bodies (usually from forms) and makes the data accessible via `req.body`.
+- **request**: A module used for making HTTP requests (although it's not used in the final code).
+- **https**: A module for making HTTPS requests.
+- **METHODS** and **log**: These are destructured imports from the `http` and `console` modules, but they are not used in this code.
+
+### 2. Initializing the Express Application
+
+```javascript
+const app = express();
+```
+- **app**: This initializes an Express application.
+
+### 3. Serving Static Files
+
+```javascript
+app.use(express.static("public"));
+```
+- This line serves static files (like CSS, images, etc.) from the "public" directory.
+
+### 4. Using Middleware to Parse Form Data
+
+```javascript
+app.use(bodyParser.urlencoded({ extended: true }));
+```
+- **bodyParser.urlencoded**: This middleware parses the URL-encoded data from forms, making it available in `req.body`.
+
+### 5. Handling the GET Request to Serve the Signup Page
+
+```javascript
+app.get("/", function(req, res){
+    res.sendFile(__dirname + "/signup.html")
+});
+```
+- **app.get("/")**: When a GET request is made to the root URL (`/`), this function is executed.
+- **res.sendFile**: It sends the `signup.html` file to the client's browser. `__dirname` refers to the directory in which the current script resides.
+
+### 6. Handling the POST Request to Submit the Form
+
+```javascript
+app.post("/", function(req, res){
+    var name = req.body.FName;
+    var lastname = req.body.LName;
+    var Email = req.body.email;
+```
+- **app.post("/")**: When a POST request is made to the root URL (`/`), this function is executed.
+- The form data is extracted from `req.body`, assuming that the form fields are named `FName`, `LName`, and `email`.
+
+### 7. Creating a Data Object to Send to Mailchimp
+
+```javascript
+    var data = {
+        members: [
+            {
+                email_address: Email,
+                status: "subscribed",
+                merge_fields: {
+                    FNAME: name,
+                    LNAME: lastname
+                }
+            }
+        ]
+    };
+```
+- **data**: This object is structured according to the Mailchimp API. It contains an array of `members`, where each member has an `email_address`, a `status` of "subscribed", and `merge_fields` for additional information (like first and last names).
+
+### 8. Converting the Data Object to JSON
+
+```javascript
+    var stringedData = JSON.stringify(data);
+```
+- **stringedData**: The `data` object is converted into a JSON string, which is necessary for sending it to the Mailchimp API.
+
+### 9. Defining the Mailchimp API URL and Options
+
+```javascript
+    const url = "https://us13.api.mailchimp.com/3.0/lists/e076987432";
+    const options = {
+        method: "POST",
+        auth: "Tanunurwa:a316aca817e9757bd20b4be1700a1333-us13"
+    };
+```
+- **url**: The Mailchimp API URL for the specific list you're adding subscribers to (identified by the list ID `e076987432`).
+- **options**: Configuration for the HTTP request, specifying the `method` as `POST` and the `auth` option with a username (`Tanunurwa`) and an API key (`a316aca817e9757bd20b4be1700a1333-us13`).
+
+### 10. Sending the Data to Mailchimp
+
+```javascript
+    const request = https.request(url, options, function(response){
+        response.on("data", function(data){
+            console.log(JSON.parse(data));
+        });
+    });
+```
+- **https.request**: This function sends a POST request to the Mailchimp API.
+- **response.on("data")**: This event listener handles the response from Mailchimp. It logs the response data (after parsing it from JSON).
+
+### 11. Sending the Stringified Data
+
+```javascript
+    request.write(stringedData);
+    request.end();
+```
+- **request.write(stringedData)**: This sends the `stringedData` (the JSON string) to Mailchimp.
+- **request.end()**: This ends the request, signaling that all data has been sent.
+
+### 12. Starting the Server
+
+```javascript
+app.listen(3000, function(){
+    console.log("Server is running on port @Port: 3000");
+});
+```
+- **app.listen(3000)**: This starts the server, listening on port 3000.
+- **console.log**: Logs a message to the console indicating that the server is running.
+
+### Summary
+This code creates a simple web server using Express. It serves an HTML signup form, processes the submitted data, and sends it to the Mailchimp API to add a new subscriber to a mailing list. The server runs on port 3000.
