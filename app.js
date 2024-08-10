@@ -46,7 +46,7 @@ app.post("/", function(req,res){
     const url = "https://us13.api.mailchimp.com/3.0/lists/e07698743 ";
     const options ={
         method: "POST",
-        auth: "Tanunurwa:a316aca817e9757bd20b4be1700a1333-us13"
+        auth: "Tanunurwa:c17c09d89c1c1b0bc3f1860050e6974c-us13"
     } ;
    const request = https.request(url, options ,function(response){
     if (response.statusCode === 200 ) {
